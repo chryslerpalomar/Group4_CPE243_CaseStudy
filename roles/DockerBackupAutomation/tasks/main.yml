@@ -1,0 +1,58 @@
+# Backup
+  - name: install docker
+    apt:
+      name: docker.io
+      state: present
+
+  - name: install docker sdk
+    shell:
+      pip3 install docker-py
+
+  - name: Add user to docker group
+    user:
+      name: chrysler
+      groups: docker
+      append: yes
+
+  - name: start docker service
+    service:
+      name: docker
+      state: started
+
+  - name: copy the docker backup automation file
+    copy:
+      src: "DockerBackup"
+      dest: "/home/chrysler"
+      owner: chrysler
+      group: chrysler
+      mode: "0755"
+
+  - name: fetch files to backup
+    shell: |
+      sudo mkdir /root/backup
+      sudo cp -r /home/chrysler/* /root/backup
+      sudo mv /root/backup /home/chrysler/DockerBackup
+    args:
+      executable: /bin/bash
+    become: yes
+
+#  - name: prepare files to backup
+#    copy:
+#      src: "backup"
+#      dest: "/home/chrysler/DockerBackup"
+#      owner: chrysler
+#      group: chrysler
+#      mode: "0755"
+
+  - name: Build the docker backup automation image
+    docker_image:
+      name: imagebackupautomation
+      path: "/home/chrysler/DockerBackup"
+      state: present
+
+  - name: Create and run the docker backup automation container
+    docker_container:
+      name: containerbackupautomation
+      image: imagebackupautomation
+      state: started
+      detach: yes

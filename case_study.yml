@@ -1,0 +1,23 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Ensure dpkg is configured
+    raw: sudo dpkg --configure -a
+    ignore_errors: yes
+    changed_when: false
+
+  - name: install update and repositories
+    tags: always
+    apt:
+      upgrade: yes
+      update_cache: yes
+      cache_valid_time: 86400
+    changed_when: false
+
+- hosts: controlnode
+  become: true
+  roles:
+#    - DockerUpdateAutomation
+    - DockerBackupAutomation

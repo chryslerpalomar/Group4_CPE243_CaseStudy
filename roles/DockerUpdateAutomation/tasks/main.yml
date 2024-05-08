@@ -1,0 +1,41 @@
+# Update
+  - name: install docker
+    apt:
+      name: docker.io
+      state: present
+
+  - name: install docker sdk
+    shell:
+      pip3 install docker-py
+
+  - name: Add user to docker group
+    user:
+      name: chrysler
+      groups: docker
+      append: yes
+
+  - name: start docker service
+    service:
+      name: docker
+      state: started
+
+  - name: copy the docker update automation file
+    copy:
+      src: "DockerUpdate"
+      dest: "/home/chrysler"
+      owner: chrysler
+      group: chrysler
+      mode: "0755"
+
+  - name: Build the docker update automation image
+    docker_image:
+      name: imageupdateautomation
+      path: "/home/chrysler/DockerUpdate"
+      state: present
+
+  - name: Create and run the docker update automation container
+    docker_container:
+      name: containerupdateautomation
+      image: imageupdateautomation
+      state: started
+      detach: yes
